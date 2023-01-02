@@ -2,11 +2,16 @@ import os
 import json
 import requests
 import pandas as pd
+import time
+import hmac
+import hashlib
+import base64
+import websocket
 from kucoin.client import Client
 
-api_key = "6390259662176200010ca6c2"
-api_secret = "db3752b8-5f44-40fd-9cea-fdaad9ac3539"
-api_passphrase = "owJ-x9F8NC79P4UQ76Zmx9Yp@Ug*NP-@"
+api_key = "63a4ae7e7a500e00015ac3d7" # 6390259662176200010ca6c2 - old
+api_secret = "c8b22127-b95b-409b-ae11-11e430383a70" # db3752b8-5f44-40fd-9cea-fdaad9ac3539 - old
+api_passphrase = "r_qQKWNcAToe7mUc" # owJ-x9F8NC79P4UQ76Zmx9Yp@Ug*NP-@ - old
 client = Client(api_key, api_secret,api_passphrase)
 url = 'https://api.kucoin.com'
 
@@ -43,6 +48,58 @@ def printit():
         print(f"This coin is {coin}, opening is {coinCandleData[1][1]}, closing is: {coinCandleData[1][2]}, high is {coinCandleData[1][3]}, low is {coinCandleData[1][4]}")
         #print(coinCandleData[1])
 
+    time_now = int(time.time() * 1000)
+    str_to_sign = str(time_now) + 'POST' + '/api/v1/bullet-private'
+    signature = base64.b64encode(hmac.new(api_secret.encode('utf-8'), str_to_sign.encode('utf-8'), hashlib.sha256).digest())
+    passphrase = base64.b64encode(hmac.new(api_secret.encode('utf-8'), api_passphrase.encode('utf-8'), hashlib.sha256).digest())
+
+    headers = {
+        'KC-API-KEY': api_key,
+        'KC-API-SIGN': signature,
+        'KC-API-TIMESTAMP': str(time_now),
+        'KC-API-PASSPHRASE': passphrase,
+        'KC-API-KEY-VERSION': '2',
+    }
+
+    connection = requests.post(f"{url}/api/v1/bullet-private", headers=headers)
+    print("connection:", connection)
+    print(connection.json())
+    print(connection.status_code)
+
+    print("token: ", connection.json()['data']['token'])
+    token = connection.json()['data']['token']
+    print("endpoint: ", connection.json()['data']['instanceServers'][0]['endpoint'])
+    endpoint = connection.json()['data']['instanceServers'][0]['endpoint']
+
+    params = {
+        "event": "unsubscribe", #subscribe/unsubscribe
+        "channel": "book",
+        "pair": "BTCUSD",
+        "prec": "P0"
+        }
+
+    def on_open(ws):
+        print('Opened Connection')
+        ws.send(json.dumps(params))
+
+    def on_close(ws):
+        print('Closed Connection')
+
+    def on_message(ws, message):
+        print (message)
+
+    def on_error(ws, err):
+        print("Got a an error: ", err)
+
+    
+   # websockets --> connect
+   # websocket --> WebSocketApp
+    ws = websocket.WebSocketApp(f'{endpoint}?token={token}&[connectId={time_now}]',
+                                    on_open = on_open, 
+                                    on_close = on_close, 
+                                    on_message = on_message,
+                                    on_error=on_error)
+    ws.run_forever(ping_interval=1000, ping_timeout=10)
 
 
 
