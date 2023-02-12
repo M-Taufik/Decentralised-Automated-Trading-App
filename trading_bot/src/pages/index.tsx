@@ -2,17 +2,27 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
 import React from 'react'
-import { Container, Navbar, Text, Button, Grid, Col, Modal, Card, Row, Dropdown, Image } from '@nextui-org/react';
+import { Container, Navbar, Text, Button, Grid, Col, Modal, Card, Row, Dropdown, Image, Input, Spacer, Switch, useTheme } from '@nextui-org/react';
 import InfoCard from '../components/InfoCard';
 import { FaWallet } from 'react-icons/fa'
+import { useTheme as useNextTheme } from 'next-themes'
+import { SunIcon } from './SunIcon';
+import { MoonIcon } from './MoonIcon';
 
 const Home: NextPage = () => {
+  /* Navbar */
   const [visible, setVisible] = React.useState(false)
   const handler = () => setVisible(true)
   const closeHandler = () => {
     setVisible(false)
     console.log("closed")
   }
+
+  // themes
+  const { setTheme } = useNextTheme();
+  const { isDark, type } = useTheme();
+
+  /* Trade container */
   const [selectedFrom, setSelectedFrom] = React.useState(new Set(["text"]))
   const selectedFromValue = React.useMemo(
     () => Array.from(selectedFrom).join(", ").replaceAll("_", " "),
@@ -24,6 +34,19 @@ const Home: NextPage = () => {
     [selectedTo]
   )
 
+  /* Grid in trade container */
+  // const MockItem = ({ text }) => {
+  //   return (
+  //     <Card css={{ h: "$24", $$cardColor: '$colors$primary' }}>
+  //       <Card.Body>
+  //         <Text h6 size={15} color="white" css={{ mt: 0 }}>
+  //           {text}
+  //         </Text>
+  //       </Card.Body>
+  //     </Card>
+  //   );
+  // };
+
   return (
     <Container>
       {/* Navbar */}
@@ -34,8 +57,8 @@ const Home: NextPage = () => {
           </Text>
         </Navbar.Brand>
         <Navbar.Content hideIn="md">
-          <Navbar.Link href="#">Trade</Navbar.Link>
-          <Navbar.Link href="#">Asset</Navbar.Link>
+          <Navbar.Link href="/">Trade</Navbar.Link>
+          <Navbar.Link href="/assets">Assets</Navbar.Link>
           <Navbar.Link href="#">Statistics</Navbar.Link>
         </Navbar.Content>
         <Navbar.Content>
@@ -52,6 +75,7 @@ const Home: NextPage = () => {
               <FaWallet/>
               &nbsp;Connect Wallet
             </Button> 
+            {/* modal on wallet button */}
             <Modal 
             width='1000px'
             closeButton
@@ -118,18 +142,35 @@ const Home: NextPage = () => {
           </Navbar.Item>
         </Navbar.Content>
       </Navbar>
+
+      {/* Theme switch */}
+      <div style={{float: 'right', margin: 'left', marginTop: '2em'}}>
+        <Switch
+          shadow color="primary"
+          checked={isDark}
+          iconOff={<SunIcon filled/>}
+          iconOn={<MoonIcon filled/>}
+          onChange={(e) => setTheme(e.target.checked ? 'dark' : 'light')}
+        />
+      </div>
+
+      
+
       {/* Jumbotron */}
-      <Grid.Container justify="center" css={{"height": "500px", "backgroundImage": "url(https://littlevisuals.co/images/sunset.jpg)"}}>
-        <Grid xs={12} sm={6} alignItems="center">
+
+      <Grid.Container justify="center">
+        <Grid xs={12} sm={6} alignItems="center" css={{marginRight: "200px"}}>
           <Col css={{"width": "100%"}}>
-        <Card css={{ mw: "800px" , justifyContent: "center"}}>
+          <Card css={{justifyContent: "center", height:"500px", width: "120%", padding: "10px"}}>
           <Card.Header style={{"justifyContent":"center"}}>
-            <Text weight={"bold"} size={50} b>Trade</Text>
+            <Text weight={"bold"} size={40} b>Trade</Text>
           </Card.Header>
           <Card.Divider />
           <Card.Body css={{ py: "$10" }}>
+          <Grid.Container gap={2} justify="center">
+          <Grid xs={6} css={{ height: "100px", color:"White"}}>
             <Dropdown>
-              <Dropdown.Button flat color="primary" css={{ tt: "capitalize" }}>
+              <Dropdown.Button flat color="primary" css={{ tt: "capitalize", width: "500px" }}>
                 {selectedFromValue}
               </Dropdown.Button>
               <Dropdown.Menu
@@ -148,16 +189,16 @@ const Home: NextPage = () => {
               </Dropdown.Menu>
             </Dropdown>
             &nbsp;
-            <Image
+            {/* <Image
               color='white'
               src="/arrow3.png"
               alt="Default Image"
               width={50}
               height={50}
-            />
+            /> */}
             &nbsp;
             <Dropdown>
-              <Dropdown.Button flat color="primary" css={{ tt: "capitalize" }}>
+              <Dropdown.Button flat color="primary" css={{ tt: "capitalize", width: "500px" }}>
                 {selectedToValue}
               </Dropdown.Button>
               <Dropdown.Menu
@@ -175,43 +216,31 @@ const Home: NextPage = () => {
                 <Dropdown.Item key="iteration">Iteration</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
+          </Grid>
+          <Grid xs={6} justify={"center"}>
+          <>
+            <Input clearable bordered labelPlaceholder="Amount" initialValue="0.00" />
+          </>
+          </Grid>
+    </Grid.Container>
           </Card.Body>
           <Card.Divider />
           <Card.Footer>
             <Row justify="center">
-              <Button size="sm" color="secondary">Check Trade</Button>
+              <Button 
+               auto 
+               flat 
+               href="#" 
+               bordered 
+               onPress={handler} 
+               size="lg" 
+               color="primary"
+               >
+                Connect Wallet</Button>
             </Row>
           </Card.Footer>
         </Card> 
         </Col>
-        </Grid>
-      </Grid.Container>
-
-      {/* 3 Displaying Product Cards */}
-      <Grid.Container gap={2}>
-        <Grid xs={12} sm={4}>
-          <InfoCard
-            label="Course"
-            title="Learn Next.js With Cooper Codes"
-            imageURL="https://littlevisuals.co/images/red_dawn.jpg"
-            studentCount="3,500"
-          />
-        </Grid>
-        <Grid xs={12} sm={4}>
-          <InfoCard
-            label="Course"
-            title="Learn Apollo Server With Cooper Codes"
-            imageURL="https://littlevisuals.co/images/sunset.jpg"
-            studentCount="1,000"
-          />
-        </Grid>
-        <Grid xs={12} sm={4}>
-          <InfoCard
-            label="Course"
-            title="Create A Startup With Cooper Codes"
-            imageURL="https://littlevisuals.co/images/tail.jpg"
-            studentCount="5,000"
-          />
         </Grid>
       </Grid.Container>
     </Container>
