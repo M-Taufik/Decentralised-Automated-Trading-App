@@ -1,13 +1,14 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
-import React from 'react'
+import React, {useState, useEffect} from 'react'
 import { Container, Navbar, Text, Button, Grid, Col, Modal, Card, Row, Dropdown, Image, Input, Spacer, Switch, useTheme, Table } from '@nextui-org/react';
 import InfoCard from '../components/InfoCard';
 import { FaWallet } from 'react-icons/fa'
 import { useTheme as useNextTheme } from 'next-themes'
 import { SunIcon } from './SunIcon';
 import { MoonIcon } from './MoonIcon';
+import { ethers } from 'ethers'
 
 const Assets: NextPage = () => {
 
@@ -38,22 +39,49 @@ const Assets: NextPage = () => {
   const rows = [
     {
       key: "1",
-      coin: "USDC",
+      coin: "USDT",
       value: "S$1.00"
     },
     {
       key: "2",
-      coin: "WSTETH",
+      coin: "ETH",
       value: "S$1,263.00"
     },
   ];
+
+  const [currentAccount, setCurrentAccount] = useState(null)
+  const [buttonText, setButtonText] = useState('Connect Wallet')
+  const [accountBalance, setAccountBalance] = useState()
+  const [provider, setProvidor] = useState()
+  
+
+  const connectWallet = async () => {
+
+    //check if wallet is installed
+    if (window.ethereum) {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        setCurrentAccount(accounts[0])
+        setButtonText('Wallet Connected')
+        getAccountBalance(accounts[0]);
+    }
+    else {
+        // Show alert if Ethereum provider is not detected
+        alert("Please install Metamask wallet");
+    }
+
+}
+
+const getAccountBalance = async (account: any) => {
+    const balance = await window.ethereum.request({ method: 'eth_getBalance', params: [account, 'latest'] });
+    setAccountBalance(balance) 
+}
 
   return (
     <Container>
       {/* Navbar */}
       <Navbar isCompact variant={"static"}>
         <Navbar.Brand>
-          <Text b color="inherit">
+          <Text h3 b color="inherit">
             AMM
           </Text>
         </Navbar.Brand>
@@ -71,73 +99,14 @@ const Assets: NextPage = () => {
             href="#" 
             bordered 
             color="gradient"
-            onPress={handler}
+            onPress={connectWallet}
             > 
               <FaWallet/>
-              &nbsp;Connect Wallet
-            </Button> 
-            <Modal 
-            width='1000px'
-            closeButton
-            preventClose
-            aria-labelledby='modal-title'
-            open={visible}
-            onClose={closeHandler}
-            >
-              <Modal.Header>
-                <Text id="modal-title" size={18}>
-                  Connect a Wallet
-                </Text>
-              </Modal.Header>
-              <Modal.Body>
-              <Container gap={0}>
-                <Row gap={1}>
-                  <Col>
-                    <Card css={{ $$cardColor: 'white' }}>
-                      <Card.Body>
-                        <Text h6 size={15} color="black" css={{ m: 0 }}>
-                          Recommended
-                        </Text>
-                        &nbsp;
-                        <Text color={"black"}>MetaMask</Text>
-                        <Text color={"black"}>Rainbow</Text>
-                        &nbsp;
-                        <Text h6 size={15} color="black" css={{ m: 0 }}>
-                          Others
-                        </Text>
-                        &nbsp;
-                        <Text color={"black"}>WalletConnect</Text>
-                        <Text color={"black"}>imToken</Text>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                  <Col>
-                    <Card css={{ $$cardColor: 'white' }}>
-                      <Card.Body>
-                        <Text h6 size={15} color="black" css={{ m: 0 }}>
-                          What is a Wallet?
-                        </Text>&nbsp;
-                        <Text h6 size={15} color="black" css={{ m: 0 }}>
-                          A home for your digital assets
-                        </Text>
-                        <Text h6 size={15} color="grey" css={{ m: 0 }}>
-                          Used to send, receive, store, and disaply digital assets like NFTs.
-                        </Text>
-                        &nbsp;
-                        <Text h6 size={15} color="black" css={{ m: 0 }}>
-                        A new way to log in
-                        </Text>
-                        <Text h6 size={15} color="grey" css={{ m: 0 }}>
-                        Instead of creating new accounts and passwords on every website, just connect your wallet.  
-                        </Text>
-                        &nbsp;
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                </Row>
-              </Container>
-              </Modal.Body>
-            </Modal>
+              &nbsp;{buttonText}
+              {currentAccount && <div>
+                  <h6>&nbsp;&nbsp;&nbsp;| Address:{currentAccount}</h6>
+                </div>}
+            </Button>     
             </React.Fragment>
           </Navbar.Item>
         </Navbar.Content>
@@ -158,26 +127,26 @@ const Assets: NextPage = () => {
       <Grid.Container gap={2}>
         <Grid xs={12} sm={4}>
           <InfoCard
-            label="Course"
-            title="Learn Next.js With Cooper Codes"
-            imageURL="https://littlevisuals.co/images/red_dawn.jpg"
-            studentCount="3,500"
+            label="Total "
+            title="Balance"
+            imageURL="https://logos-world.net/wp-content/uploads/2020/12/Ethereum-Emblem.png"
+            Balance="2"
           />
         </Grid>
         <Grid xs={12} sm={4}>
           <InfoCard
-            label="Course"
-            title="Learn Apollo Server With Cooper Codes"
-            imageURL="https://littlevisuals.co/images/sunset.jpg"
-            studentCount="1,000"
+            label="Total "
+            title="Profit"
+            imageURL="https://wallpapercave.com/wp/wp4477741.jpg"
+            Balance="0.9"
           />
         </Grid>
         <Grid xs={12} sm={4}>
           <InfoCard
-            label="Course"
-            title="Create A Startup With Cooper Codes"
-            imageURL="https://littlevisuals.co/images/tail.jpg"
-            studentCount="5,000"
+            label="Total "
+            title="Lose"
+            imageURL="https://th.bing.com/th/id/OIP.5egbaGbp9RSj_U4hDFnC0AHaEo?pid=ImgDet&rs=1"
+            Balance="0.10"
           />
         </Grid>
       </Grid.Container>

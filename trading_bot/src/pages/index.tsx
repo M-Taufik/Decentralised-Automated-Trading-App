@@ -1,13 +1,15 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
-import React from 'react'
+import React, {useState, useEffect} from 'react'
 import { Container, Navbar, Text, Button, Grid, Col, Modal, Card, Row, Dropdown, Image, Input, Spacer, Switch, useTheme } from '@nextui-org/react';
 import InfoCard from '../components/InfoCard';
 import { FaWallet } from 'react-icons/fa'
 import { useTheme as useNextTheme } from 'next-themes'
 import { SunIcon } from './SunIcon';
 import { MoonIcon } from './MoonIcon';
+import { ethers } from 'ethers'
+import { ALL } from 'dns';
 
 const Home: NextPage = () => {
   /* Navbar */
@@ -34,6 +36,33 @@ const Home: NextPage = () => {
     [selectedTo]
   )
 
+  const [currentAccount, setCurrentAccount] = useState(null)
+  const [buttonText, setButtonText] = useState('Connect Wallet')
+  const [accountBalance, setAccountBalance] = useState()
+  const [provider, setProvidor] = useState()
+  
+
+  const connectWallet = async () => {
+
+    //check if wallet is installed
+    if (window.ethereum) {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        setCurrentAccount(accounts[0])
+        setButtonText('Wallet Connected')
+        getAccountBalance(accounts[0]);
+    }
+    else {
+        // Show alert if Ethereum provider is not detected
+        alert("Please install Metamask wallet");
+    }
+
+}
+
+const getAccountBalance = async (account: any) => {
+    const balance = await window.ethereum.request({ method: 'eth_getBalance', params: [account, 'latest'] });
+    setAccountBalance(balance) 
+}
+
   /* Grid in trade container */
   // const MockItem = ({ text }) => {
   //   return (
@@ -52,7 +81,7 @@ const Home: NextPage = () => {
       {/* Navbar */}
       <Navbar isCompact variant={"static"}>
         <Navbar.Brand>
-          <Text b color="inherit">
+          <Text h3 b color="inherit">
             AMM
           </Text>
         </Navbar.Brand>
@@ -70,13 +99,16 @@ const Home: NextPage = () => {
             href="#" 
             bordered 
             color="gradient"
-            onPress={handler}
+            onPress={connectWallet}
             > 
               <FaWallet/>
-              &nbsp;Connect Wallet
+              &nbsp;{buttonText}
+              {currentAccount && <div>
+                  <h6>&nbsp;&nbsp;&nbsp;| Address:{currentAccount}</h6>
+                </div>}
             </Button> 
             {/* modal on wallet button */}
-            <Modal 
+      {/*      <Modal 
             width='1000px'
             closeButton
             preventClose
@@ -137,7 +169,7 @@ const Home: NextPage = () => {
                 </Row>
               </Container>
               </Modal.Body>
-            </Modal>
+  </Modal> */}
             </React.Fragment>
           </Navbar.Item>
         </Navbar.Content>
@@ -181,11 +213,11 @@ const Home: NextPage = () => {
                 selectedKeys={selectedFrom}
                 onSelectionChange={setSelectedFrom}
               >
-                <Dropdown.Item key="text">Text</Dropdown.Item>
-                <Dropdown.Item key="number">Number</Dropdown.Item>
-                <Dropdown.Item key="date">Date</Dropdown.Item>
-                <Dropdown.Item key="single_date">Single Date</Dropdown.Item>
-                <Dropdown.Item key="iteration">Iteration</Dropdown.Item>
+                <Dropdown.Item key="ETH">ETH</Dropdown.Item>
+                <Dropdown.Item key="SOL">SOL</Dropdown.Item>
+                <Dropdown.Item key="BTC">BTC</Dropdown.Item>
+                <Dropdown.Item key="MATIC">MATIC</Dropdown.Item>
+                <Dropdown.Item key="USDT">USDT</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
             &nbsp;
@@ -209,17 +241,17 @@ const Home: NextPage = () => {
                 selectedKeys={selectedTo}
                 onSelectionChange={setSelectedTo}
               >
-                <Dropdown.Item key="text">Text</Dropdown.Item>
-                <Dropdown.Item key="number">Number</Dropdown.Item>
-                <Dropdown.Item key="date">Date</Dropdown.Item>
-                <Dropdown.Item key="single_date">Single Date</Dropdown.Item>
-                <Dropdown.Item key="iteration">Iteration</Dropdown.Item>
+                <Dropdown.Item key="ETH">ETH</Dropdown.Item>
+                <Dropdown.Item key="SOL">SOL</Dropdown.Item>
+                <Dropdown.Item key="BTC">BTC</Dropdown.Item>
+                <Dropdown.Item key="MATIC">MATIC</Dropdown.Item>
+                <Dropdown.Item key="USDT">USDT</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
           </Grid>
           <Grid xs={6} justify={"center"}>
           <>
-            <Input clearable bordered labelPlaceholder="Amount" initialValue="0.00" />
+            <Input clearable bordered labelPlaceholder="Amount: " initialValue="0.00" />
           </>
           </Grid>
     </Grid.Container>
@@ -232,11 +264,15 @@ const Home: NextPage = () => {
                flat 
                href="#" 
                bordered 
-               onPress={handler} 
+               onClick={connectWallet} 
                size="lg" 
                color="primary"
                >
-                Connect Wallet</Button>
+                {buttonText}</Button>
+        {/*        {currentAccount && <div>
+                  <h5>Address:{currentAccount}</h5>
+                  <h5>Balance:{accountBalance}</h5>
+                </div>} */}
             </Row>
           </Card.Footer>
         </Card> 

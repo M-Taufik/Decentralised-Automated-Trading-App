@@ -5,21 +5,21 @@ interface Props {
     title: string;
     label: string;
     imageURL: string;
-    studentCount: string;
+    Balance: string;
 }
 
 const InfoCard: NextPage<Props> = (props) => {
 
-    const { title, label, imageURL, studentCount } = props;
+    const { title, label, imageURL, Balance } = props;
 
     return (
         <Card>
             <Card.Header css={{position: "absolute", top: 5}}>
                 <Col>
-                    <Text size={12} weight="bold" transform="uppercase" color="#ffffffAA">
+                    <Text size={12} weight="bold" transform="uppercase" color="grey">
                         {label} 
                     </Text>
-                    <Text h4 color="white">
+                    <Text h2 color="grey">
                         {title}
                     </Text>
                 </Col>
@@ -36,12 +36,12 @@ const InfoCard: NextPage<Props> = (props) => {
                 <Row>
                     <Col>
                         <Text color="#d1d1d1" size={18}>
-                            {studentCount} Students
+                            {Balance} Ethereum
                         </Text>
                     </Col>
                     <Col>
                         <Row justify="flex-end">
-                            <Button flat auto rounded color="primary">
+                     { /*      <Button flat auto rounded color="primary">
                                 <Text
                                     css={{color: "inherit"}}
                                     size={12}
@@ -50,7 +50,8 @@ const InfoCard: NextPage<Props> = (props) => {
                                 >
                                     Enroll In Course
                                 </Text>
-                            </Button>
+                            </Button> 
+            */}
                         </Row>
                     </Col>
                 </Row>
