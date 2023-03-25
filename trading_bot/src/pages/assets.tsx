@@ -9,6 +9,9 @@ import { useTheme as useNextTheme } from 'next-themes'
 import { SunIcon } from './SunIcon';
 import { MoonIcon } from './MoonIcon';
 import { ethers } from 'ethers'
+import { useStore } from "@/store";
+import StoreInitializer from "@/components/StoreInitializer";
+import axios from 'axios';
 
 const Assets: NextPage = () => {
 
@@ -23,6 +26,33 @@ const Assets: NextPage = () => {
    // themes
    const { setTheme } = useNextTheme();
    const { isDark, type } = useTheme();
+
+   
+const getEthPrice = async () => {
+  const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+  return response.data.ethereum.usd;
+};
+
+const getUSDTPrice = async () => {
+  const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=usd');
+  return response.data.tether.usd
+}
+
+const [ethPrice, setEthPrice] = useState(null);
+const [usdtPrice, setUSDTPrice] = useState(null);
+
+useEffect(() => {
+  const fetchPrices = async () => {
+    const ETHprice = await getEthPrice();
+    const USDTprice = await getUSDTPrice();
+    setEthPrice(ETHprice);
+    setUSDTPrice(USDTprice);
+  };
+
+  const intervalId = setInterval(fetchPrices, 5000); // Fetch prices every 5 seconds
+
+  return () => clearInterval(intervalId); // Clean up interval on unmount
+}, []);
 
   /* Dynamic table headers */
   const columns = [
@@ -40,27 +70,30 @@ const Assets: NextPage = () => {
     {
       key: "1",
       coin: "USDT",
-      value: "S$1.00"
+      value: usdtPrice !== null ? `$${usdtPrice.toFixed(2)}` : "Loading..."
+      // value: usdtPrice !== null ? `$${usdtPrice.toFixed(2)}` : "Loading..."
     },
     {
       key: "2",
       coin: "ETH",
-      value: "S$1,263.00"
+      value: ethPrice !== null ? `$${ethPrice.toFixed(2)}` : "Loading..."
     },
   ];
 
-  const [currentAccount, setCurrentAccount] = useState(null)
+  const [currentAccount, setCurrentAccount] = useState<string>("..");
   const [buttonText, setButtonText] = useState('Connect Wallet')
-  const [accountBalance, setAccountBalance] = useState()
-  const [provider, setProvidor] = useState()
-  
+  const [accountBalance, setAccountBalance] = useState<string>("..");
+  // const [provider, setProvidor] = useState()
+  const provider: ethers.providers.JsonRpcProvider = new ethers.providers.JsonRpcProvider();
+
 
   const connectWallet = async () => {
 
     //check if wallet is installed
     if (window.ethereum) {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        setCurrentAccount(accounts[0])
+        const currentAccount = `${accounts[0].substring(0, 6)}...${accounts[0].slice(-6)}`;
+        setCurrentAccount(currentAccount)
         setButtonText('Wallet Connected')
         getAccountBalance(accounts[0]);
     }
@@ -73,11 +106,14 @@ const Assets: NextPage = () => {
 
 const getAccountBalance = async (account: any) => {
     const balance = await window.ethereum.request({ method: 'eth_getBalance', params: [account, 'latest'] });
-    setAccountBalance(balance) 
+    setAccountBalance(ethers.utils.formatEther(balance)) 
 }
+
+useStore.setState({ wallet: currentAccount, balance: accountBalance });
 
   return (
     <Container>
+       <StoreInitializer wallet={useStore.getState().wallet} balance={useStore.getState().balance} />
       {/* Navbar */}
       <Navbar isCompact variant={"static"}>
         <Navbar.Brand>
@@ -86,8 +122,8 @@ const getAccountBalance = async (account: any) => {
           </Text>
         </Navbar.Brand>
         <Navbar.Content hideIn="md">
-          <Navbar.Link href="/">Trade</Navbar.Link>
-          <Navbar.Link href="#">Assets</Navbar.Link>
+          <Navbar.Link href="/trade">Trade</Navbar.Link>
+          <Navbar.Link href="/assets">Assets</Navbar.Link>
           <Navbar.Link href="#">Statistics</Navbar.Link>
         </Navbar.Content>
         <Navbar.Content>
@@ -101,10 +137,9 @@ const getAccountBalance = async (account: any) => {
             color="gradient"
             onPress={connectWallet}
             > 
-              <FaWallet/>
-              &nbsp;{buttonText}
+              <FaWallet/> &nbsp; {useStore.getState().balance}
               {currentAccount && <div>
-                  <h6>&nbsp;&nbsp;&nbsp;| Address:{currentAccount}</h6>
+                  <h6>&nbsp;&nbsp;&nbsp;| Address:{useStore.getState().wallet}</h6>
                 </div>}
             </Button>     
             </React.Fragment>
@@ -130,7 +165,7 @@ const getAccountBalance = async (account: any) => {
             label="Total "
             title="Balance"
             imageURL="https://logos-world.net/wp-content/uploads/2020/12/Ethereum-Emblem.png"
-            Balance="2"
+            Balance={useStore.getState().balance}
           />
         </Grid>
         <Grid xs={12} sm={4}>

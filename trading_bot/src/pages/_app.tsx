@@ -2,6 +2,9 @@ import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
 import { NextUIProvider, createTheme } from '@nextui-org/react'
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
+import LoadingIndicator from '../components/LoadingIndicator';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Light Theme
 const lightTheme = createTheme({
@@ -20,6 +23,7 @@ const darkTheme = createTheme({type: "dark"});
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
+
   <NextThemesProvider
     defaultTheme="lightTheme"
     attribute="class"
@@ -29,9 +33,10 @@ export default function App({ Component, pageProps }: AppProps) {
     }}
     >
       <NextUIProvider theme={darkTheme}>
-
+        <LoadingIndicator />
         <Component {...pageProps} >
         </Component>
+        <ToastContainer />
       </NextUIProvider>
   </NextThemesProvider>
   )
